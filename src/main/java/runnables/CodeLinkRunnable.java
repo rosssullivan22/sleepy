@@ -7,12 +7,13 @@ import com.firebase.client.ValueEventListener;
 import main.Main;
 import main.SystemTrayHandler;
 import static constants.Constants.*;
+import static IO.Connector.*;
 
 public class CodeLinkRunnable implements Runnable {
 
     public void run() {
-        Main.db.child(USERS)
-                .child(Main.id)
+        db.child(USERS)
+                .child(id)
                 .child(LINKED)
                 .addValueEventListener(new ValueEventListener() {
                     public void onDataChange(DataSnapshot snapshot) {
@@ -33,8 +34,8 @@ public class CodeLinkRunnable implements Runnable {
 
     private void checkIfCodeExistsInDB() {
 
-        Main.db.child(USERS)
-                .child(Main.id)
+        db.child(USERS)
+                .child(id)
                 .child(CODES)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -56,7 +57,7 @@ public class CodeLinkRunnable implements Runnable {
     private void startMonitoringLocation() {
         SystemTrayHandler.remomveCodeOptionFromMenu();
         FileHandler.removeValueForKey("code");
-        Main.db.child(USERS).child(Main.id).child(CODES).removeValue();
+        db.child(USERS).child(id).child(CODES).removeValue();
         Thread monitorThread = new Thread(new MonitorRunnable());
         monitorThread.start();
     }

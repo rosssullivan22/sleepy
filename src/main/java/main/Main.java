@@ -12,11 +12,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import static constants.Constants.*;
+import static IO.Connector.*;
 
 public class Main {
 
-    public final static Firebase db = new Firebase("https://computer-sleep-app.firebaseio.com/");
-    public static String id = "0";
     private static SystemTrayHandler systemTrayHandler = new SystemTrayHandler();
 
     public static void main(String[] args) {

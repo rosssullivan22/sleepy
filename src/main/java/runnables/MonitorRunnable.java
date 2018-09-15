@@ -5,13 +5,14 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
 import java.io.IOException;
-import main.Main;
 import static constants.Constants.*;
+import static IO.Connector.*;
+
 public class MonitorRunnable implements Runnable {
 
     public void run() {
-        Main.db.child(USERS)
-                .child(Main.id)
+        db.child(USERS)
+                .child(id)
                 .child(IS_LEAVING_REGION)
                 .addValueEventListener(new ValueEventListener() {
                     public void onDataChange(DataSnapshot snapshot) {
@@ -42,7 +43,7 @@ public class MonitorRunnable implements Runnable {
 
 
         //update database
-        Main.db.child(USERS).child(Main.id).child(IS_LEAVING_REGION).setValue(false);
+        db.child(USERS).child(id).child(IS_LEAVING_REGION).setValue(false);
 
     }
 
