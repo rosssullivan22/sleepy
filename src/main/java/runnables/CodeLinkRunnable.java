@@ -4,7 +4,7 @@ import IO.FileHandler;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import main.Main;
+import generators.CodeGenerator;
 import main.SystemTrayHandler;
 import static constants.Constants.*;
 import static IO.Connector.*;
@@ -41,7 +41,7 @@ public class CodeLinkRunnable implements Runnable {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
-                    Main.addActivationCode();
+                    CodeGenerator.addActivationCode();
                 }
             }
 
