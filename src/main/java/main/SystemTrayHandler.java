@@ -34,7 +34,7 @@ public class SystemTrayHandler {
 
     }
 
-    public static void remomveCodeOptionFromMenu(){
+    public static void removeCodeOptionFromMenu(){
         trayIcon.getPopupMenu().remove(codeItem);
     }
 

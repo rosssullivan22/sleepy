@@ -10,8 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static IO.Connector.db;
-import static constants.Constants.IS_LEAVING_REGION;
-import static constants.Constants.USERS;
+import static constants.Constants.*;
 
 public class IdGenerator {
 
@@ -45,6 +44,7 @@ public class IdGenerator {
 
             id = uniqueID[0];
             db.child(USERS).child(id).child(IS_LEAVING_REGION).setValue(false);
+            db.child(USERS).child(id).child(LINKED).setValue(false);
 
             //Save Id
             try {
