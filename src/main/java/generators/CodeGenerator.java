@@ -18,33 +18,33 @@ public class CodeGenerator {
 
     private final static String[] code = {generateActivationCode()};
 
-    public static void addActivationCode() {
-        db.child(CODES).child(code[0]).addListenerForSingleValueEvent(new ValueEventListener() {
-            public void onDataChange(DataSnapshot snapshot) {
-                System.out.println("Creating Activation Code");
-                if (snapshot.exists()) {
-                    code[0] = generateActivationCode();
-                    addActivationCode();
-                }else{
-                    db.child(CODES).child(code[0]).child(PC_ID).setValue(id);
-                    db.child(USERS).child(id).child(CODES).setValue(code[0]);
-                    db.child(USERS).child(id).child(NEWCODE).removeValue();
+//    public static void addActivationCode() {
+//        db.child(CODES).child(code[0]).addListenerForSingleValueEvent(new ValueEventListener() {
+//            public void onDataChange(DataSnapshot snapshot) {
+//                System.out.println("Creating Activation Code");
+//                if (snapshot.exists()) {
+//                    code[0] = generateActivationCode();
+//                    addActivationCode();
+//                }else{
+//                    db.child(CODES).child(code[0]).child(PC_ID).setValue(id);
+//                    db.child(USERS).child(id).child(CODES).setValue(code[0]);
+//                    db.child(USERS).child(id).child(NEWCODE).removeValue();
+//
+//                    try {
+//                        Map<String, String> map = new HashMap<>();
+//                        map.put(XML_CODE, code[0]);
+//                        FileHandler.writeToXML(map);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//            public void onCancelled(FirebaseError firebaseError) {
+//            }
+//        });
+//    }
 
-                    try {
-                        Map<String, String> map = new HashMap<>();
-                        map.put("code", code[0]);
-                        FileHandler.writeToXML(map);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
-    }
-
-    private static String generateActivationCode() {
+    public static String generateActivationCode() {
         Random random = new Random();
         int low = 0;
         int high = 9999;

@@ -5,43 +5,24 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import generators.CodeGenerator;
+import main.Main;
 import main.SystemTrayHandler;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static IO.Connector.db;
+import static IO.Connector.id;
 import static constants.Constants.*;
-import static IO.Connector.*;
 
 public class CodeLinkRunnable implements Runnable {
 
 
     public void run() {
-        db.child(USERS)
-                .child(id)
-                .child(LINKED)
-                .addValueEventListener(new ValueEventListener() {
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            if (snapshot.getValue() instanceof Boolean) {
-                                if ((Boolean) snapshot.getValue()) {
-                                    System.out.println("code linked");
-                                    pcWasLinked();
-                                } else {
-                                    System.out.println("code not linked, waiting...");
-                                    //Check if we have a code and make one if we dont
-                                    //checkIfCodeExistsInDB();
-                                }
-                            }
-                        }
-                    }
-
-                    public void onCancelled(FirebaseError firebaseError) {
-                    }
-                });
-
-
+        checkIfCodeExistsInDB();
     }
 
     private void checkIfCodeExistsInDB() {
-
         db.child(USERS)
                 .child(id)
                 .child(CODES)
@@ -50,7 +31,10 @@ public class CodeLinkRunnable implements Runnable {
                     public void onDataChange(DataSnapshot snapshot) {
                         if (!snapshot.exists()) {
                             System.out.println("code not in db, adding it");
-                            CodeGenerator.addActivationCode();
+                            addActivationCode();
+                        } else {
+                            System.out.println("code in db but not linked, waiting...");
+                            listenForLink();
                         }
                     }
 
@@ -59,16 +43,64 @@ public class CodeLinkRunnable implements Runnable {
 
                     }
                 });
-
-
     }
 
+    private static void addActivationCode() {
+        final String[] code = {CodeGenerator.generateActivationCode()};
 
-    private void pcWasLinked() {
-        System.out.println("pc was linked");
+        db.child(CODES).child(code[0]).addListenerForSingleValueEvent(new ValueEventListener() {
+            public void onDataChange(DataSnapshot snapshot) {
+                System.out.println("Creating Activation Code");
+                if (snapshot.exists()) {
+                    code[0] = CodeGenerator.generateActivationCode();
+                    addActivationCode();
+                } else {
+                    db.child(CODES).child(code[0]).child(PC_ID).setValue(id);
+                    db.child(USERS).child(id).child(CODES).setValue(code[0]);
+                    db.child(USERS).child(id).child(NEWCODE).removeValue();
+
+                    try {
+                        Map<String, String> map = new HashMap<>();
+                        map.put(XML_CODE, code[0]);
+                        FileHandler.writeToXML(map);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    listenForLink();
+                }
+            }
+
+            public void onCancelled(FirebaseError firebaseError) {
+            }
+        });
+    }
+
+    private static void listenForLink() {
+        db.child(USERS)
+                .child(id)
+                .child(LINKED)
+                .addValueEventListener(new ValueEventListener() {
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            if (snapshot.getValue() instanceof Boolean) {
+                                if ((Boolean) snapshot.getValue()) {
+                                    pcIsLinked();
+                                    db.removeEventListener(this);
+                                }
+                            }
+                        }
+                    }
+
+                    public void onCancelled(FirebaseError firebaseError) {
+                    }
+                });
+    }
+
+    private static void pcIsLinked() {
+        System.out.println("pc is linked");
 
         try {
-            String code = FileHandler.getValueFromXMLForKey("code");
+            String code = FileHandler.getValueFromXMLForKey(XML_CODE);
             db.child(CODES).child(code).removeValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,50 +111,11 @@ public class CodeLinkRunnable implements Runnable {
             e.printStackTrace();
         }
 
-//        FileHandler.removeValueForKey("code");
-//        SystemTrayHandler.removeCodeOptionFromMenu();
-    }
+        FileHandler.removeValueForKey(XML_CODE);
+        SystemTrayHandler.removeCodeOptionFromMenu();
 
-
-    /**
-     * @return true if linked to a phone, false if not linked to a phone
-     */
-    private boolean checkIfLinked() {
-
-        final boolean[] dataAccessed = {false};
-        final boolean[] data = {false};
-
-        db.child(USERS)
-                .child(id)
-                .child(LINKED)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            if (snapshot.getValue() instanceof Boolean) {
-                                data[0] = (boolean) snapshot.getValue();
-                            }
-                        }
-                        dataAccessed[0] = true;
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
-
-        while (!dataAccessed[0]) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return data[0];
-
-
+        Main.getMonitorThread().start();
+        Thread.currentThread().interrupt();
     }
 
 }

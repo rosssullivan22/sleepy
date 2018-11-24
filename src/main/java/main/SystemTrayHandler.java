@@ -1,6 +1,7 @@
 package main;
 
 import IO.FileHandler;
+import runnables.UnlinkRunnable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,13 +9,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
+import static constants.Constants.XML_CODE;
+
 public class SystemTrayHandler {
 
     private final static String name = "Sleepy";
     private static TrayIcon trayIcon;
     private static MenuItem codeItem = new MenuItem("Code");
+    private static MenuItem unlinkItem = new MenuItem("Unlink");
 
-    public void start(){
+    public void start() {
         if (!SystemTray.isSupported()) {
             System.out.println("System tray not supported on this platform");
             System.exit(1);
@@ -34,10 +38,9 @@ public class SystemTrayHandler {
 
     }
 
-    public static void removeCodeOptionFromMenu(){
+    public static void removeCodeOptionFromMenu() {
         trayIcon.getPopupMenu().remove(codeItem);
     }
-
 
     private static PopupMenu createTrayMenu() {
         ActionListener exitListener = new ActionListener() {
@@ -47,13 +50,33 @@ public class SystemTrayHandler {
             }
         };
 
-        ActionListener executeListener = new ActionListener() {
+        ActionListener codeListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     String title = "Activation Code";
-                    String message = "Your activation code is: " + FileHandler.getValueFromXMLForKey("code");
+                    String message = "Your activation code is: " + FileHandler.getValueFromXMLForKey(XML_CODE);
                     JOptionPane.showMessageDialog(null, message, title, JOptionPane.INFORMATION_MESSAGE);
-                } catch (Exception error){
+                } catch (Exception error) {
+                    error.printStackTrace();
+                }
+            }
+        };
+
+        ActionListener unlinkListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String title = "Are you sure?";
+                    String message = "Once you unlinked you can still relink your phone again.";
+                    int input = JOptionPane.showOptionDialog(null, message, title,
+                            JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                            null, null, null);
+                    if (input == JOptionPane.OK_OPTION){
+                        System.out.println("unlinking...");
+                        new Thread(new UnlinkRunnable()).start();
+
+                    }
+
+                } catch (Exception error) {
                     error.printStackTrace();
                 }
             }
@@ -61,8 +84,11 @@ public class SystemTrayHandler {
 
         PopupMenu menu = new PopupMenu();
 
-        codeItem.addActionListener(executeListener);
+        codeItem.addActionListener(codeListener);
         menu.add(codeItem);
+
+        unlinkItem.addActionListener(unlinkListener);
+        menu.add(unlinkItem);
 
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.addActionListener(exitListener);

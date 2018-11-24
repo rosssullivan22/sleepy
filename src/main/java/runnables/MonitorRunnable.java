@@ -5,8 +5,11 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
 import java.io.IOException;
-import static constants.Constants.*;
-import static IO.Connector.*;
+
+import static IO.Connector.db;
+import static IO.Connector.id;
+import static constants.Constants.IS_LEAVING_REGION;
+import static constants.Constants.USERS;
 
 public class MonitorRunnable implements Runnable {
 
